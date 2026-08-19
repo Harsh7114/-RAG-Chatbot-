@@ -1,7 +1,8 @@
 from dotenv import load_dotenv
 load_dotenv()
-
-from langchain_community.document_loaders import PyPDFLoader , PyPDFDirectoryLoader
+import os
+import streamlit as st
+from langchain_community.document_loaders import  PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -9,7 +10,7 @@ from langchain_community.vectorstores import InMemoryVectorStore
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
-import streamlit as st
+
 
 
 
@@ -46,7 +47,10 @@ def process_document(path):
     )
 
     # create a agent - tool , llm,prompt 
-    llm = ChatGroq(model="openai/gpt-oss-20b")
+    llm = ChatGroq(
+    model="openai/gpt-oss-20b",
+    api_key=st.secrets["GROQ_API_KEY"]
+    )
     #tool
     @tool
     def retrieve_context(query:str):
@@ -96,6 +100,8 @@ if not st.session_state.document_uploaded:
     if uploaded :
         with st.spinner("PROCSSING..."):
             path = "./docs_files/"
+            os.makedirs(path,exist_ok = True)
+
             for file in uploaded:
                 with open(path + file.name , "wb") as f:
                     f.write(file.getvalue())
